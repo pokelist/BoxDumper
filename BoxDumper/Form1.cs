@@ -188,6 +188,10 @@ namespace BoxDumper
             }
             catch { return "Error";}
         }
+        private uint getmove_raw(byte[] buff, int offset)
+        {
+            return (uint)(buff[offset] + buff[offset + 1] * 0x100);
+        }
         private string getivs(byte[] buff, uint sv)
         {
             int IV32 = buff[0x77] * 0x1000000 + buff[0x76] * 0x10000 + buff[0x75] * 0x100 + buff[0x74];
@@ -301,6 +305,10 @@ namespace BoxDumper
             string[] nattable = new string[] { "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax", "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash", "Calm", "Gentle", "Sassy", "Careful", "Quirky" };
             return nattable[nature];
         }
+        private string getnature_raw(byte[] buff)
+        {
+            return buff[0x1C].ToString();
+        }
         private string getgender(byte[] buff)
         {
             string g = "";
@@ -308,21 +316,29 @@ namespace BoxDumper
             if (genderflag == 0)
             {
                 // Gender = Male
-                g = " (M)";
+                g = "M";
             }
             else if (genderflag == 1)
             {
                 // Gender = Female
-                g = " (F)";
+                g = "F";
             }
-            else { g = ""; }
+            else { g = "N"; }
             return g;
+        }
+        private string getgender_raw(byte[] buff)
+        {
+            return ((buff[0x1D] >> 1) & 0x3).ToString();
         }
         private string getability(byte[] buff)
         {
             int ability = buff[0x14];
             string[] abiltable = new string[] { "None", "Stench", "Drizzle", "Speed Boost", "Battle Armor", "Sturdy", "Damp", "Limber", "Sand Veil", "Static", "Volt Absorb", "Water Absorb", "Oblivious", "Cloud Nine", "Compound Eyes", "Insomnia", "Color Change", "Immunity", "Flash Fire", "Shield Dust", "Own Tempo", "Suction Cups", "Intimidate", "Shadow Tag", "Rough Skin", "Wonder Guard", "Levitate", "Effect Spore", "Synchronize", "Clear Body", "Natural Cure", "Lightning Rod", "Serene Grace", "Swift Swim", "Chlorophyll", "Illuminate", "Trace", "Huge Power", "Poison Point", "Inner Focus", "Magma Armor", "Water Veil", "Magnet Pull", "Soundproof", "Rain Dish", "Sand Stream", "Pressure", "Thick Fat", "Early Bird", "Flame Body", "Run Away", "Keen Eye", "Hyper Cutter", "Pickup", "Truant", "Hustle", "Cute Charm", "Plus", "Minus", "Forecast", "Sticky Hold", "Shed Skin", "Guts", "Marvel Scale", "Liquid Ooze", "Overgrow", "Blaze", "Torrent", "Swarm", "Rock Head", "Drought", "Arena Trap", "Vital Spirit", "White Smoke", "Pure Power", "Shell Armor", "Air Lock", "Tangled Feet", "Motor Drive", "Rivalry", "Steadfast", "Snow Cloak", "Gluttony", "Anger Point", "Unburden", "Heatproof", "Simple", "Dry Skin", "Download", "Iron Fist", "Poison Heal", "Adaptability", "Skill Link", "Hydration", "Solar Power", "Quick Feet", "Normalize", "Sniper", "Magic Guard", "No Guard", "Stall", "Technician", "Leaf Guard", "Klutz", "Mold Breaker", "Super Luck", "Aftermath", "Anticipation", "Forewarn", "Unaware", "Tinted Lens", "Filter", "Slow Start", "Scrappy", "Storm Drain", "Ice Body", "Solid Rock", "Snow Warning", "Honey Gather", "Frisk", "Reckless", "Multitype", "Flower Gift", "Bad Dreams", "Pickpocket", "Sheer Force", "Contrary", "Unnerve", "Defiant", "Defeatist", "Cursed Body", "Healer", "Friend Guard", "Weak Armor", "Heavy Metal", "Light Metal", "Multiscale", "Toxic Boost", "Flare Boost", "Harvest", "Telepathy", "Moody", "Overcoat", "Poison Touch", "Regenerator", "Big Pecks", "Sand Rush", "Wonder Skin", "Analytic", "Illusion", "Imposter", "Infiltrator", "Mummy", "Moxie", "Justified", "Rattled", "Magic Bounce", "Sap Sipper", "Prankster", "Sand Force", "Iron Barbs", "Zen Mode", "Victory Star", "Turboblaze", "Teravolt", "Aroma Veil", "Flower Veil", "Cheek Pouch", "Protean", "Fur Coat", "Magician", "Bulletproof", "Competitive", "Strong Jaw", "Refrigerate", "Sweet Veil", "Stance Change", "Gale Wings", "Mega Launcher", "Grass Pelt", "Symbiosis", "Tough Claws", "Pixilate", "Gooey", "-184-", "-185-", "Dark Aura", "Fairy Aura", "Aura Break", "-189-", };
             return abiltable[ability];
+        }
+        private string getability_raw(byte[] buff)
+        {
+            return buff[0x14].ToString();
         }
         private string bytes2text(byte[] buff, int o)
         {
@@ -357,7 +373,10 @@ namespace BoxDumper
             }
             catch { return "Error";}
         }
-
+        private string getball_raw(byte[] buff)
+        {
+            return buff[0xDC].ToString();
+        }
 
         private static uint CEXOR(uint seed)
         {
@@ -687,13 +706,42 @@ namespace BoxDumper
                                             ;
                                         result += "\r\n" + resultline;
                                     }
+                                    else if (C_Format.Text == "Raw .csv")
+                                    {
+                                        modestring = "";
+                                        location = (((i / 30) + 1) + C_DStart.SelectedIndex) + "," + ((i % 30) / 6 + 1) + "," + (i % 6 + 1);
+                                        string resultline =
+                                            location + // Slot
+                                            "," + species + //Species
+                                            "," + getgender_raw(pkxdata) + // Gender
+                                            "," + getnature_raw(pkxdata) + // Nature
+                                            "," + getability_raw(pkxdata) + // Ability
+                                            "," + getball_raw(pkxdata) + // Ball
+                                            "," + getivs3(pkxdata) + // IVs
+                                            "," + getevs(pkxdata) + // EVs
+                                            "," + getmove_raw(pkxdata, 0x5A) +
+                                            "," + getmove_raw(pkxdata, 0x5C) +
+                                            "," + getmove_raw(pkxdata, 0x5E) +
+                                            "," + getmove_raw(pkxdata, 0x60) +
+                                            "," + getmove_raw(pkxdata, 0x6A) +
+                                            "," + getmove_raw(pkxdata, 0x6C) +
+                                            "," + getmove_raw(pkxdata, 0x6E) +
+                                            "," + getmove_raw(pkxdata, 0x70) +
+                                            "," + bytes2text(pkxdata, 0xB0) + // OT
+                                            "," + ((uint)(pkxdata[0x0C] + pkxdata[0x0D] * 0x100)).ToString("00000") + // TID
+                                            "," + getTSV(pkxdata) +
+                                            "," + ShinyValue.ToString("0000") +
+                                            "," + ((pkxdata[0x77] >> 6) & 1).ToString(); // is egg
+                                        result += "\r\n" + resultline;
+                                    }
                                     else if (C_Format.Text == ".csv")
                                     {
                                         modestring = "";
                                         location = (((i / 30) + 1) + C_DStart.SelectedIndex) + "," + ((i % 30) / 6 + 1) + "," + (i % 6 + 1);
                                         string resultline =
                                             location + // Slot
-                                            "," + specname + getgender(pkxdata) + // Species Gender
+                                            "," + specname + //Species
+                                            "," + getgender(pkxdata) + // Gender
                                             "," + getnature(pkxdata) + // Nature
                                             "," + getability(pkxdata) + // Ability
                                             "," + getball(pkxdata) + // Ball
@@ -708,9 +756,10 @@ namespace BoxDumper
                                             "," + getmove(pkxdata, 0x6E) +
                                             "," + getmove(pkxdata, 0x70) +
                                             "," + bytes2text(pkxdata, 0xB0) + // OT
-                                            "," + ((uint)(pkxdata[0x0C] + pkxdata[0x0D] * 0x100)).ToString("00000") +
+                                            "," + ((uint)(pkxdata[0x0C] + pkxdata[0x0D] * 0x100)).ToString("00000") + // TID
                                             "," + getTSV(pkxdata) +
-                                            "," + ShinyValue.ToString("0000");
+                                            "," + ShinyValue.ToString("0000") +
+                                            "," + (new string[] {"Egg", "Hatched"})[(pkxdata[0x77] >> 6) & 1]; // is egg
                                         result += "\r\n" + resultline;
                                     }
                                     else if (C_Format.Text == "Truck")
@@ -792,11 +841,11 @@ namespace BoxDumper
                         {
                             T_Dialog.Text += "Errors: " + errors + "\r\n";
                         }
-                        if (C_Format.Text == ".csv")
+                        if (C_Format.Text == ".csv" || C_Format.Text == "Raw .csv")
                         {
                             T_Dialog.Text += "Data exported to CSV:";
 
-                            result = "Box,Row,Column,Species,Nature,Ability,Ball,HP,ATK,DEF,SpA,SpD,Spe,E_HP,E_ATK,E_DEF,E_SpA,E_SpD,E_SpE,Move1,Move2,Move3,Move4,EggMove1,EggMove2,EggMove3,EggMove4,OT,TID,TSV,ESV" + result;
+                            result = "Box,Row,Column,Species,Gender,Nature,Ability,Ball,IV HP,IV Atk,IV Def,IV SpAtk,IV SpDef,IV Spe,EV HP,EV Atk,EV Def,EV SpAtk,EV SpDef,EV Spe,Move 1,Move 2,Move 3,Move 4,Egg Move 1,Egg Move 2,Egg Move 3,Egg Move 4,OT,TID,TSV,ESV,Is Egg" + result;
 
                             SaveFileDialog savecsv = new SaveFileDialog();
                             savecsv.Filter = "Spreadsheet|*.csv";

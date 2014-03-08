@@ -198,7 +198,8 @@
             "Default",
             "Reddit",
             "TSV",
-            ".csv"});
+            ".csv",
+            "Raw .csv"});
             this.C_Format.Location = new System.Drawing.Point(251, 99);
             this.C_Format.Name = "C_Format";
             this.C_Format.Size = new System.Drawing.Size(65, 21);
