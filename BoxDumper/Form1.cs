@@ -377,6 +377,10 @@ namespace BoxDumper
         {
             return buff[0xDC].ToString();
         }
+        private string getexp(byte[] buff)
+        {
+            return (buff[0x10] | buff[0x11] << 8 | buff[0x12] << 16 | buff[0x13] << 24).ToString();
+        }
 
         private static uint CEXOR(uint seed)
         {
@@ -631,6 +635,7 @@ namespace BoxDumper
                                         boxkey[z] = (byte)(oldboxkey[z]);
                                     }
                                     continue;
+
                                 }
                                 else
                                 {   // Save our changes
@@ -712,23 +717,25 @@ namespace BoxDumper
                                         location = (((i / 30) + 1) + C_DStart.SelectedIndex) + "," + ((i % 30) / 6 + 1) + "," + (i % 6 + 1);
                                         string resultline =
                                             location + // Slot
-                                            "," + species + //Species
+                                            "," + species + //Species ID
                                             "," + getgender_raw(pkxdata) + // Gender
                                             "," + getnature_raw(pkxdata) + // Nature
                                             "," + getability_raw(pkxdata) + // Ability
                                             "," + getball_raw(pkxdata) + // Ball
+                                            "," + getexp(pkxdata) + // Exp
                                             "," + getivs3(pkxdata) + // IVs
                                             "," + getevs(pkxdata) + // EVs
-                                            "," + getmove_raw(pkxdata, 0x5A) +
+                                            "," + getmove_raw(pkxdata, 0x5A) + // Moves
                                             "," + getmove_raw(pkxdata, 0x5C) +
                                             "," + getmove_raw(pkxdata, 0x5E) +
                                             "," + getmove_raw(pkxdata, 0x60) +
-                                            "," + getmove_raw(pkxdata, 0x6A) +
+                                            "," + getmove_raw(pkxdata, 0x6A) + // Egg Moves
                                             "," + getmove_raw(pkxdata, 0x6C) +
                                             "," + getmove_raw(pkxdata, 0x6E) +
                                             "," + getmove_raw(pkxdata, 0x70) +
                                             "," + bytes2text(pkxdata, 0xB0) + // OT
                                             "," + ((uint)(pkxdata[0x0C] + pkxdata[0x0D] * 0x100)).ToString("00000") + // TID
+                                            "," + ((uint)(pkxdata[0x0E] + pkxdata[0x0F] << 8)).ToString("00000") + // SID
                                             "," + getTSV(pkxdata) +
                                             "," + ShinyValue.ToString("0000") +
                                             "," + ((pkxdata[0x77] >> 6) & 1).ToString(); // is egg
@@ -745,6 +752,7 @@ namespace BoxDumper
                                             "," + getnature(pkxdata) + // Nature
                                             "," + getability(pkxdata) + // Ability
                                             "," + getball(pkxdata) + // Ball
+                                            "," + getexp(pkxdata) + // Exp
                                             "," + getivs3(pkxdata) + // IVs
                                             "," + getevs(pkxdata) + // EVs
                                             "," + getmove(pkxdata, 0x5A) +
@@ -757,9 +765,10 @@ namespace BoxDumper
                                             "," + getmove(pkxdata, 0x70) +
                                             "," + bytes2text(pkxdata, 0xB0) + // OT
                                             "," + ((uint)(pkxdata[0x0C] + pkxdata[0x0D] * 0x100)).ToString("00000") + // TID
+                                            "," + ((uint)(pkxdata[0x0E] + pkxdata[0x0F] << 8)).ToString("00000") + // SID
                                             "," + getTSV(pkxdata) +
                                             "," + ShinyValue.ToString("0000") +
-                                            "," + (new string[] {"Egg", "Hatched"})[(pkxdata[0x77] >> 6) & 1]; // is egg
+                                            "," + (new string[] {"Hatched", "Egg"})[(pkxdata[0x77] >> 6) & 1]; // is egg
                                         result += "\r\n" + resultline;
                                     }
                                     else if (C_Format.Text == "Truck")
@@ -845,7 +854,7 @@ namespace BoxDumper
                         {
                             T_Dialog.Text += "Data exported to CSV:";
 
-                            result = "Box,Row,Column,Species,Gender,Nature,Ability,Ball,IV HP,IV Atk,IV Def,IV SpAtk,IV SpDef,IV Spe,EV HP,EV Atk,EV Def,EV SpAtk,EV SpDef,EV Spe,Move 1,Move 2,Move 3,Move 4,Egg Move 1,Egg Move 2,Egg Move 3,Egg Move 4,OT,TID,TSV,ESV,Is Egg" + result;
+                            result = "Box,Row,Column,Species,Gender,Nature,Ability,Ball,Exp,IV HP,IV Atk,IV Def,IV SpAtk,IV SpDef,IV Spe,EV HP,EV Atk,EV Def,EV SpAtk,EV SpDef,EV Spe,Move 1,Move 2,Move 3,Move 4,Egg Move 1,Egg Move 2,Egg Move 3,Egg Move 4,OT,TID,SID,TSV,ESV,Is Egg" + result;
 
                             SaveFileDialog savecsv = new SaveFileDialog();
                             savecsv.Filter = "Spreadsheet|*.csv";
@@ -880,6 +889,7 @@ namespace BoxDumper
                 //}
             }
         }
+
         private void B_DumpKeyRange_Click(object sender, EventArgs e)
         {
             DialogResult ynr = MessageBox.Show("This will only work if you have empty boxes for the region you selected. \r\n\r\nIt is suggested that you have empty boxes for your entire save file (by moving to Bank), and that you do this just once to get 1-30 boxes.\r\n\r\nContinue?", "Confirmation", MessageBoxButtons.YesNo);
