@@ -390,41 +390,6 @@ namespace BoxDumper
             seed = (seed * a + c) & 0xFFFFFFFF;
             return seed;
         }
-        // Custom Encryption
-        private byte[] da(byte[] array)
-        {
-
-            {
-                // Returns the Encrypted/Decrypted Array of Data
-                int al = array.Length;
-                // Set Encryption Seed
-                uint eseed = (uint)(array[al - 4] + array[al - 3] * 0x100 + array[al - 2] * 0x10000 + array[al - 1] * 0x10000000);
-                byte[] nca = new Byte[al];
-
-                // Get our XORCryptor
-                uint xc = CEXOR(eseed);
-                uint xc0 = (xc & 0xFF);
-                uint xc1 = ((xc >> 8) & 0xFF);
-                uint xc2 = ((xc >> 16) & 0xFF);
-                uint xc3 = ((xc >> 24) & 0xFF);
-
-                // Fill Our New Array
-                for (int i = 0; i < (al - 4); i += 4)
-                {
-                    nca[i + 0] = (byte)(xc0 ^ array[i + 0]);
-                    nca[i + 1] = (byte)(xc1 ^ array[i + 1]);
-                    nca[i + 2] = (byte)(xc2 ^ array[i + 2]);
-                    nca[i + 3] = (byte)(xc3 ^ array[i + 3]);
-                }
-                // Return the Seed
-                nca[al - 4] = array[al - 4];
-                nca[al - 3] = array[al - 3];
-                nca[al - 2] = array[al - 2];
-                nca[al - 1] = array[al - 1];
-
-                return nca;
-            }
-        }
 
         // Data Manipulation
         public static uint ToUInt32(String value, int b)
@@ -643,9 +608,9 @@ namespace BoxDumper
                                     //corruptedindex += (i + 1) + " - Keystream Corruption Fixed!\r\n";
                                     if (!File.Exists(T_KEY.Text + ".bak"))
                                     {
-                                        File.WriteAllBytes(T_KEY.Text + ".bak", da(oldboxkey));
+                                        File.WriteAllBytes(T_KEY.Text + ".bak", oldboxkey);
                                     }
-                                    File.WriteAllBytes(T_KEY.Text, da(boxkey));
+                                    File.WriteAllBytes(T_KEY.Text, boxkey);
                                 }
                             }
 
@@ -916,7 +881,7 @@ namespace BoxDumper
                 if (savenewkey.ShowDialog() == DialogResult.OK)
                 {
                     string path = savenewkey.FileName;
-                    File.WriteAllBytes(path, da(newkeystream));
+                    File.WriteAllBytes(path, newkeystream);
                     string result = "Dumped Keystream of the Following Boxes:";
                     result += "\r\nBox" + C_Start.Text;
                     if (C_Format.Text == "Truck")
@@ -990,7 +955,7 @@ namespace BoxDumper
                 byte[] input = File.ReadAllBytes(path);
                 if ((input.Length % (232*30) == 0) && (input.Length <= (232*30*31)))
                 {
-                    boxkey = da(input);
+                    boxkey = input;
                     T_KEY.Text = path;
                 }
                 else
@@ -1012,7 +977,7 @@ namespace BoxDumper
                 byte[] input = File.ReadAllBytes(path);
                 if ((input.Length == 232))
                 {
-                    blankekx = da(input);
+                    blankekx = input;
                     T_EKX.Text = path;
                     T_EKX2.Text = path;
                     C_Start.SelectedIndex = 5;
